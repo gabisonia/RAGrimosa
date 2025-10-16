@@ -10,7 +10,7 @@ The orchestrator ingests Lacrimosa's narrative into a vector store, retrieves th
 ## About
 
 This project was created as a **demo for the dotnet.ge community talk**  - Building a RAG System with Microsoft.Extensions.VectorData.  
-It demonstrates how to integrate OpenAI models, PostgreSQL with pgvector, and the new `Microsoft.Extensions.AI` abstractions to build a simple yet functional RAG pipeline in .NET.
+It demonstrates how to integrate OpenAI models, PostgreSQL with pgvector, and the new `Microsoft.Extensions.VectorData` to build a simple yet functional RAG pipeline in .NET.
 
 ---
 
