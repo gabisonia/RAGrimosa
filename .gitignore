@@ -1,0 +1,43 @@
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE directories and settings
+.vs/
+.idea/
+*.DotSettings
+*.DotSettings.user
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Tt]est[Rr]esult*/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+[Xx]64/
+[Xx]86/
+Ipch/
+
+# Package manager caches
+.nuget/
+packages/
+
+# Coverage and diagnostics
+coverage/
+*.opendb
+*.VC.db
+
+# Tooling caches
+_ReSharper.Caches/
+
+# User secrets and local config
+*.userprefs
+*.local.json
+appsettings.Development.json
