@@ -1,41 +1,41 @@
 # RAGrimosa
 
-RAGrimosa is a .NET 8 console application that ingests local text documents into a pgvector-backed Postgres database and answers user questions using OpenAI chat and embedding models.
+RAGrimosa is a lightweight RAG console app built to answer questions about Lacrimosa.  
+The story can be found in `data/source.txt`.
 
-## Prerequisites
-- Docker and Docker Compose (v2) installed locally
-- An OpenAI API key configured in `RAGrimosa/appsettings.json`
+The orchestrator ingests Lacrimosa's narrative into a vector store, retrieves the most relevant chunks for each user question, and streams answers from an OpenAI chat model.
 
-The default configuration in `RAGrimosa/appsettings.json` targets the `db` hostname that Docker Compose provisions. If you run the app outside Docker, switch that host back to `localhost`.
+---
 
-## Run with Docker Compose
-1. Build the application image and start an interactive session:
-   ```bash
-   docker compose run --rm --build app
-   ```
-   Compose will automatically provision the pgvector-enabled Postgres service and run the console app.
+## About
 
-2. Wait for ingestion to complete. When you see `user >`, type your question and press Enter.
+This project was created as a **demo for the [dotnet.ge](https://dotnet.ge) community talk**  - Building a RAG System with Microsoft.Extensions.VectorData.  
+It demonstrates how to integrate OpenAI models, PostgreSQL with pgvector, and the new `Microsoft.Extensions.VectorData` to build a simple yet functional RAG pipeline in .NET.
 
-3. To exit, press Enter on an empty line or press `Ctrl+C`. Because `--rm` is used, the container is removed automatically once the session ends.
+---
 
-4. When you no longer need the database container, stop and remove Compose resources:
-   ```bash
-   docker compose down
-   ```
+## How it works
+- Text ingestion splits `data/source.txt` into overlapping chunks and upserts them into a pgvector-backed PostgreSQL collection.
+- At runtime, the app performs semantic search over the stored embeddings to assemble context for each prompt.
+- A system prompt and the retrieved snippets are sent to the configured OpenAI chat model to generate replies.
 
-## Repository Structure
-```
-Dockerfile                 # Multi-stage build for the .NET console app
-RAGrimosa/                 # Application source, configuration, and data
-  appsettings.json         # Primary configuration (OpenAI, Postgres, ingestion, RAG)
-  data/source.txt          # Sample document ingested on startup
-  ...
-docker-compose.yml         # Orchestrates Postgres (pgvector) and the app container
-docker/                    # Docker-related assets
-  postgres/initdb.d/       # SQL scripts, e.g., pgvector extension creation
-```
+---
 
-## Notes
-- `docker compose run` keeps STDIN attached so you can interact with the console application.
-- Modify `RAGrimosa/appsettings.json` to point at your own data, change chunking parameters, or adjust RAG behavior.
+## Tech stack
+- .NET 8 console host with `Microsoft.Extensions.AI` for chat and embedding pipelines.  
+- OpenAI Chat & Embeddings APIs via `Microsoft.Extensions.AI.OpenAI`.  
+- PostgreSQL + pgvector using `Microsoft.SemanticKernel.Connectors.PgVector` and `Npgsql`.  
+- Vector store abstractions using `Microsoft.Extensions.VectorData`.
+
+---
+
+## Getting started
+1. Ensure PostgreSQL with the pgvector extension is available and reachable from your machine.  
+2. Update `appsettings.json` with your OpenAI API key, model IDs, Postgres connection string, and ingestion settings.  
+3. Ask Lacrimosa-themed questions in the terminal; press Enter on an empty line to exit.
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — you are free to use, modify, and distribute it with attribution.
