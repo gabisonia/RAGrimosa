@@ -115,14 +115,14 @@ internal sealed class RagOrchestrator(
     private static void PrintCitations(IReadOnlyList<VectorSearchResult<DocumentChunk>> results)
     {
         Console.WriteLine();
-        WriteLine(ConsoleColor.DarkGray, "Context chunks:");
+        WriteLine(ConsoleColor.White, "Context chunks:");
 
         for (var i = 0; i < results.Count; i++)
         {
             var result = results[i];
             var record = result.Record;
             var scoreText = result.Score is null ? string.Empty : $" score={result.Score:0.###}";
-            WriteLine(ConsoleColor.DarkGray, $"[{i + 1}] {record.Source} chunk {record.ChunkIndex}{scoreText}");
+            WriteLine(ConsoleColor.White, $"[{i + 1}] {record.Source} chunk {record.ChunkIndex}{scoreText}");
         }
     }
 
