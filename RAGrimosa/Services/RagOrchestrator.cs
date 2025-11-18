@@ -8,6 +8,9 @@ using RAGrimosa.Options;
 
 namespace RAGrimosa.Services;
 
+/// <summary>
+/// Coordinates the end-to-end RAG flow: ingestion, conversational loop, and chat responses.
+/// </summary>
 internal sealed class RagOrchestrator(
     TextIngestionService ingestionService,
     VectorStoreCollection<string, DocumentChunk> collection,
@@ -15,13 +18,17 @@ internal sealed class RagOrchestrator(
     IOptions<RagOptions> ragOptions,
     ILogger<RagOrchestrator> logger)
 {
+    /// <summary>
+    /// Runs ingestion once and then starts the interactive question-answer loop until cancellation.
+    /// </summary>
+    /// <param name="cancellationToken">Token used to terminate ingestion or the conversation flow.</param>
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         WriteLine(ConsoleColor.Cyan, "Starting ingestion...\n");
 
         try
         {
-            await ingestionService.IngestAsync(cancellationToken).ConfigureAwait(false);
+            await ingestionService.IngestAsync(cancellationToken);
         }
         catch (Exception ex)
         {
@@ -45,8 +52,8 @@ internal sealed class RagOrchestrator(
                 break;
             }
 
-            var searchResults = await SearchContextAsync(question, ragSettings.SearchResultCount, cancellationToken)
-                .ConfigureAwait(false);
+            var searchResults = await SearchContextAsync(question, ragSettings.SearchResultCount, cancellationToken);
+
             if (searchResults.Count == 0)
             {
                 WriteLine(ConsoleColor.Yellow, "No relevant context retrieved. Try another question.");
@@ -62,8 +69,7 @@ internal sealed class RagOrchestrator(
 
             try
             {
-                var response = await chatClient.GetResponseAsync(chatMessages, cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
+                var response = await chatClient.GetResponseAsync(chatMessages, cancellationToken: cancellationToken);
 
                 Console.WriteLine();
                 WriteLine(ConsoleColor.Cyan, $"assistant > {response.Text}".Trim());
@@ -78,6 +84,13 @@ internal sealed class RagOrchestrator(
         }
     }
 
+    /// <summary>
+    /// Executes a vector search for the supplied query and gathers all results into a list.
+    /// </summary>
+    /// <param name="query">User question that needs additional context.</param>
+    /// <param name="top">Maximum number of search matches to return.</param>
+    /// <param name="cancellationToken">Used to cancel the search enumeration.</param>
+    /// <returns>Collection of vector matches ordered by similarity.</returns>
     private async Task<List<VectorSearchResult<DocumentChunk>>> SearchContextAsync(
         string query,
         int top,
@@ -92,6 +105,11 @@ internal sealed class RagOrchestrator(
         return results;
     }
 
+    /// <summary>
+    /// Formats retrieved chunks into a textual section that will be prepended to the user message.
+    /// </summary>
+    /// <param name="results">Vector search matches.</param>
+    /// <returns>Multi-line block containing numbered snippets and chunk metadata.</returns>
     private static string BuildContextSection(IReadOnlyList<VectorSearchResult<DocumentChunk>> results)
     {
         var builder = new StringBuilder();
@@ -112,6 +130,10 @@ internal sealed class RagOrchestrator(
         return builder.ToString();
     }
 
+    /// <summary>
+    /// Prints a concise list of retrieved chunks so the console output shows which sources were used.
+    /// </summary>
+    /// <param name="results">Vector search matches that grounded the answer.</param>
     private static void PrintCitations(IReadOnlyList<VectorSearchResult<DocumentChunk>> results)
     {
         Console.WriteLine();
@@ -126,6 +148,11 @@ internal sealed class RagOrchestrator(
         }
     }
 
+    /// <summary>
+    /// Writes a colored line to the console, restoring the original color afterwards.
+    /// </summary>
+    /// <param name="color">Foreground color to apply.</param>
+    /// <param name="message">Message to print.</param>
     private static void WriteLine(ConsoleColor color, string message)
     {
         var original = Console.ForegroundColor;
@@ -134,6 +161,11 @@ internal sealed class RagOrchestrator(
         Console.ForegroundColor = original;
     }
 
+    /// <summary>
+    /// Writes a colored message without appending a newline.
+    /// </summary>
+    /// <param name="color">Foreground color to apply.</param>
+    /// <param name="message">Message to print.</param>
     private static void Write(ConsoleColor color, string message)
     {
         var original = Console.ForegroundColor;

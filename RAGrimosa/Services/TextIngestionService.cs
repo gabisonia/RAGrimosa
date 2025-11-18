@@ -6,11 +6,18 @@ using RAGrimosa.Options;
 
 namespace RAGrimosa.Services;
 
+/// <summary>
+/// Handles reading source documents, chunking them, and persisting embeddings into the vector store.
+/// </summary>
 internal sealed class TextIngestionService(
     VectorStoreCollection<string, DocumentChunk> collection,
     IOptions<IngestionOptions> options,
     ILogger<TextIngestionService> logger)
 {
+    /// <summary>
+    /// Ingests the configured text file into the vector store, returning the number of chunks written.
+    /// </summary>
+    /// <param name="cancellationToken">Stops file IO or vector store operations when triggered.</param>
     public async Task<int> IngestAsync(CancellationToken cancellationToken)
     {
         var ingestionOptions = options.Value;
@@ -19,10 +26,9 @@ internal sealed class TextIngestionService(
             throw new FileNotFoundException("Input file for ingestion was not found.", ingestionOptions.InputFilePath);
         }
 
-        await EnsureCollectionAsync(ingestionOptions.RecreateCollection, cancellationToken).ConfigureAwait(false);
+        await EnsureCollectionAsync(ingestionOptions.RecreateCollection, cancellationToken);
 
-        var fileContent = await File.ReadAllTextAsync(ingestionOptions.InputFilePath, cancellationToken)
-            .ConfigureAwait(false);
+        var fileContent = await File.ReadAllTextAsync(ingestionOptions.InputFilePath, cancellationToken);
         var chunks = SplitIntoChunks(fileContent, ingestionOptions.ChunkSize, ingestionOptions.ChunkOverlap);
 
         if (chunks.Count == 0)
@@ -45,25 +51,37 @@ internal sealed class TextIngestionService(
             });
         }
 
-        await collection.UpsertAsync(records, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await collection.UpsertAsync(records, cancellationToken: cancellationToken);
 
         logger.LogInformation("Ingested {ChunkCount} chunks from {FilePath}", records.Count,
             ingestionOptions.InputFilePath);
         return records.Count;
     }
 
+    /// <summary>
+    /// Ensures the backing collection exists, optionally deleting the previous contents first.
+    /// </summary>
+    /// <param name="recreateRequested">Whether an existing collection should be removed.</param>
+    /// <param name="cancellationToken">Cancels collection operations.</param>
     private async Task EnsureCollectionAsync(bool recreateRequested, CancellationToken cancellationToken)
     {
         if (recreateRequested)
         {
-            await collection.EnsureCollectionDeletedAsync(cancellationToken).ConfigureAwait(false);
+            await collection.EnsureCollectionDeletedAsync(cancellationToken);
             logger.LogInformation(
                 "RecreateCollection is enabled. Existing chunks will be overwritten when keys match. Use a new collection name to start fresh.");
         }
 
-        await collection.EnsureCollectionExistsAsync(cancellationToken).ConfigureAwait(false);
+        await collection.EnsureCollectionExistsAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Splits input text into overlapping chunks that align with the configured chunk size.
+    /// </summary>
+    /// <param name="content">Source text to process.</param>
+    /// <param name="chunkSize">Maximum number of characters per chunk.</param>
+    /// <param name="overlap">Number of characters that consecutive chunks should share.</param>
+    /// <returns>Ordered list of trimmed, non-empty chunks.</returns>
     private static IReadOnlyList<string> SplitIntoChunks(string content, int chunkSize, int overlap)
     {
         if (string.IsNullOrWhiteSpace(content))
@@ -101,6 +119,12 @@ internal sealed class TextIngestionService(
         return chunks;
     }
 
+    /// <summary>
+    /// Creates a deterministic identifier for each chunk so re-ingestion overwrites existing rows.
+    /// </summary>
+    /// <param name="sourceName">Original file name.</param>
+    /// <param name="index">Chunk index within the file.</param>
+    /// <returns>Stable string identifier composed of the normalized file name and a zero-padded index.</returns>
     private static string CreateStableChunkId(string sourceName, int index)
     {
         var sanitizedSource = Path.GetFileNameWithoutExtension(sourceName)?.Replace(' ', '_').ToLowerInvariant();
