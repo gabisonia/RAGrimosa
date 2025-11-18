@@ -1,6 +1,6 @@
 # RAGrimosa
 
-RAGrimosa is a .NET 8 console application that ingests local text documents into a pgvector-enabled Postgres database and answers user questions using OpenAI chat and embedding models.
+RAGrimosa is a .NET 10 console application that ingests local text documents into a pgvector-enabled Postgres database and answers user questions using OpenAI chat and embedding models.
 
 ## Prerequisites
 - Docker Desktop (or Docker Engine) with Docker Compose
