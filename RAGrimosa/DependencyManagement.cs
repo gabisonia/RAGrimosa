@@ -16,15 +16,15 @@ internal static class DependencyManagement
 {
     public static void Configure(HostApplicationBuilder builder)
     {
-        ConfigureConfiguration(builder);
-        ConfigureLogging(builder);
-        ConfigureOptions(builder);
-        ConfigureOpenAiClients(builder);
-        ConfigureVectorData(builder);
-        RegisterApplicationServices(builder);
+        AddConfiguration(builder);
+        AddLogging(builder);
+        AddOptions(builder);
+        AddOpenAiClients(builder);
+        AddVectorData(builder);
+        AddApplicationServices(builder);
     }
 
-    private static void ConfigureConfiguration(HostApplicationBuilder builder)
+    private static void AddConfiguration(HostApplicationBuilder builder)
     {
         builder.Configuration
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
@@ -32,13 +32,13 @@ internal static class DependencyManagement
             .AddUserSecrets<Program>(optional: true);
     }
 
-    private static void ConfigureLogging(HostApplicationBuilder builder)
+    private static void AddLogging(HostApplicationBuilder builder)
     {
         builder.Services
             .AddLogging(logging => logging.AddSimpleConsole().SetMinimumLevel(LogLevel.Information));
     }
 
-    private static void ConfigureOptions(HostApplicationBuilder builder)
+    private static void AddOptions(HostApplicationBuilder builder)
     {
         builder.Services.AddOptions<OpenAiOptions>()
             .Bind(builder.Configuration.GetSection(OpenAiOptions.SectionName))
@@ -61,7 +61,7 @@ internal static class DependencyManagement
             .ValidateOnStart();
     }
 
-    private static void ConfigureOpenAiClients(HostApplicationBuilder builder)
+    private static void AddOpenAiClients(HostApplicationBuilder builder)
     {
         builder.Services.AddEmbeddingGenerator(sp =>
         {
@@ -76,7 +76,7 @@ internal static class DependencyManagement
         });
     }
 
-    private static void ConfigureVectorData(HostApplicationBuilder builder)
+    private static void AddVectorData(HostApplicationBuilder builder)
     {
         var postgresConfiguration =
             builder.Configuration.GetSection(PostgresOptions.SectionName).Get<PostgresOptions>();
@@ -102,7 +102,7 @@ internal static class DependencyManagement
             postgresConfiguration.ConnectionString);
     }
 
-    private static void RegisterApplicationServices(HostApplicationBuilder builder)
+    private static void AddApplicationServices(HostApplicationBuilder builder)
     {
         builder.Services.AddSingleton<TextIngestionService>();
         builder.Services.AddSingleton<RagOrchestrator>();
